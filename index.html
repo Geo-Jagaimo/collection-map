@@ -10,25 +10,26 @@
         crossorigin=""
     />
 
-    <script>
+    <script
         src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
         crossorigin=""
-    </script>
+    ></script>
 </head>
 <body>
     <div id="map" style="height: 100vh;"></div>
     <script>
-        const map = L.map('map', {
-            center: [36.5, 137.1],
-            zoom: 5,
-            zoomControl: true,
-            layers: [backgroundLayer]
-        });
         const backgroundLayer = L.tileLayer(
             'https://tile.mierune.co.jp/mierune/{z}/{x}/{y}@2x.png', {
                 attribution: '<a href="https://mierune.co.jp">MIERUNE Inc.</a> <a href="https://www.openmaptiles.org/" target="_blank">&copy; OpenMapTiles</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
         });
+        const map = L.map('map', {
+            center: [43.50, 142.77],
+            zoom: 8,
+            zoomControl: true,
+            layers: [backgroundLayer]
+        });
+        map.addLayer(backgroundLayer);
     </script>
 </body>
 </html>
