@@ -19,17 +19,68 @@
 <body>
     <div id="map" style="height: 100vh;"></div>
     <script>
-        const backgroundLayer = L.tileLayer(
-            'https://tile.mierune.co.jp/mierune/{z}/{x}/{y}@2x.png', {
-                attribution: '<a href="https://mierune.co.jp">MIERUNE Inc.</a> <a href="https://www.openmaptiles.org/" target="_blank">&copy; OpenMapTiles</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
-        });
         const map = L.map('map', {
             center: [43.50, 142.77],
             zoom: 8,
-            zoomControl: true,
-            layers: [backgroundLayer]
         });
-        map.addLayer(backgroundLayer);
+        // MIERUNE Tile
+        const MIERUNETile = L.tileLayer(
+            'https://tile.mierune.co.jp/mierune/{z}/{x}/{y}@2x.png', {
+                attribution: '<a href="https://mierune.co.jp">MIERUNE Inc.</a> <a href="https://www.openmaptiles.org/" target="_blank">&copy; OpenMapTiles</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
+        });
+        const OSMTile = L.tileLayer(
+            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
+        });
+        MIERUNETile.addTo(map); // 初期状態はMIERUNE Tileを表示
+
+        // ズームレベルに応じてタイルを切り替える
+        map.on('zoomend', () => {
+            const zoom = map.getZoom(); // 現在のズームレベルを取得
+            if (zoom >= 8) {
+                if (!map.hasLayer(OSMTile)) {
+                    map.addLayer(OSMTile); // MIERUNEタイルを追加
+                }
+                if (map.hasLayer(MIERUNETile)) {
+                    map.removeLayer(MIERUNETile); // OSMタイルを削除
+                }
+            } else {
+                if (!map.hasLayer(MIERUNETile)) {
+                    map.addLayer(MIERUNETile); // OSMタイルを追加
+                }
+                if (map.hasLayer(OSMTile)) {
+                    map.removeLayer(OSMTile); // MIERUNEタイルを削除
+                }
+            }
+        });
+
+        // 道の駅データ
+        fetch('./data/hokkaido.geojson')
+            .then(response => response.json())
+            .then(data => {
+                L.geoJSON(data, {
+                    onEachFeature: (feature, layer) => {
+                        // P35_006をリンクテキストに、P35_007をリンクURLとして設定
+                        const link = `<a href="${feature.properties.P35_007}" target="_blank">${feature.properties.P35_006}</a>`;
+                        layer.bindPopup(link);
+                    },
+                    pointToLayer: (feature, latlng) => {
+                        // ポイントをカスタムアイコンで表示
+                        return L.marker(latlng, {
+                            icon: L.icon({
+                                iconUrl: './icon/michi_no_eki.jpg',
+                                iconSize: [32, 32], 
+                                iconAnchor: [16, 32] 
+                            }),
+                            title: feature.properties.P35_006 
+                        });
+                    }
+                }).addTo(map);
+            })
+            .catch(error => console.error('Error loading GeoJSON:', error));
+        map.attributionControl.addAttribution(
+            '<a href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-P35.html" target="_blank">道の駅データ</a>'
+        );
     </script>
 </body>
 </html>
