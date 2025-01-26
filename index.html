@@ -3,6 +3,31 @@
 <head>
     <title>マンホールカード Map</title>
     <meta charset="utf-8">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: #f8f9fa;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100% - 20px);
+            width: calc(100% - 20px);
+            box-sizing: border-box;
+            margin: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #map {
+            height: 100%;
+            width: 100%;
+            border-radius: 8px;
+        }
+    </style>
     <link 
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -17,7 +42,9 @@
     ></script>
 </head>
 <body>
-    <div id="map" style="height: 100vh;"></div>
+    <div class="container">
+        <div id="map"></div>
+    </div>
     <script>
         const map = L.map('map', {
             center: [43.50, 142.77],
@@ -37,7 +64,7 @@
         // ズームレベルに応じてタイルを切り替える
         map.on('zoomend', () => {
             const zoom = map.getZoom(); // 現在のズームレベルを取得
-            if (zoom >= 8) {
+            if (zoom >= 9) {
                 if (!map.hasLayer(OSMTile)) {
                     map.addLayer(OSMTile); // MIERUNEタイルを追加
                 }
@@ -55,17 +82,17 @@
         });
 
         // 道の駅データ
+        let load_station_Layer = null;
+
         fetch('./data/hokkaido.geojson')
             .then(response => response.json())
             .then(data => {
-                L.geoJSON(data, {
+                load_station_Layer = L.geoJSON(data, {
                     onEachFeature: (feature, layer) => {
-                        // P35_006をリンクテキストに、P35_007をリンクURLとして設定
                         const link = `<a href="${feature.properties.P35_007}" target="_blank">${feature.properties.P35_006}</a>`;
                         layer.bindPopup(link);
                     },
                     pointToLayer: (feature, latlng) => {
-                        // ポイントをカスタムアイコンで表示
                         return L.marker(latlng, {
                             icon: L.icon({
                                 iconUrl: './icon/michi_no_eki.jpg',
@@ -75,9 +102,30 @@
                             title: feature.properties.P35_006 
                         });
                     }
-                }).addTo(map);
+                });
+                if (map.getZoom() > 8){
+                    load_station_Layer.addTo(map);
+                }
             })
             .catch(error => console.error('Error loading GeoJSON:', error));
+        
+        // ズームレベルに応じて道の駅データを表示・非表示
+        map.on('zoomend', () => {
+            const zoom = map.getZoom();
+            if (load_station_Layer) {
+                if (zoom > 8) {
+                    if (!map.hasLayer(load_station_Layer)) {
+                        load_station_Layer.addTo(map); // ズームレベル10以上で表示
+                    }
+                } else {
+                    if (map.hasLayer(load_station_Layer)) {
+                        map.removeLayer(load_station_Layer); // ズームレベル9以下で非表示
+                    }
+                }
+            }
+        });
+
+        // 道の駅データの著作権表示
         map.attributionControl.addAttribution(
             '<a href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-P35.html" target="_blank">道の駅データ</a>'
         );
