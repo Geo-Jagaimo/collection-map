@@ -40,11 +40,13 @@
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
         crossorigin=""
     ></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
 </head>
 <body>
     <div class="container">
         <div id="map"></div>
     </div>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
     <script>
         const map = L.map('map', {
             center: [43.50, 142.77],
@@ -135,6 +137,16 @@
                 }
             }
         });
+
+        // 住所検索
+        L.Control.geocoder({
+            defaultMarkGeocode: true,
+            geocoder: L.Control.Geocoder.nominatim({
+                geocodingQueryParams: {
+                    'accept-language': 'ja'
+                }
+            })
+        }).addTo(map);
 
         // 道の駅データの著作権表示
         map.attributionControl.addAttribution(
