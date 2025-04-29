@@ -61,6 +61,14 @@
         });
         MIERUNETile.addTo(map); // 初期状態はMIERUNE Tileを表示
 
+        // 背景地図
+        const baseMaps = {
+            'MIERUNE Tile': MIERUNETile,
+            'OpenStreetMap': OSMTile
+        };
+
+        const layerControl = L.control.layers(baseMaps, [], { collapsed: false}).addTo(map);
+
         // ズームレベルに応じてタイルを切り替える
         map.on('zoomend', () => {
             const zoom = map.getZoom(); // 現在のズームレベルを取得
