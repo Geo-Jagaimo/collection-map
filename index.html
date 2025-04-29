@@ -114,6 +114,9 @@
                 if (map.getZoom() > 8){
                     load_station_Layer.addTo(map);
                 }
+                
+                // 道の駅をレイヤ一覧に追加
+                layerControl.addOverlay(load_station_Layer, '道の駅');
             })
             .catch(error => console.error('Error loading GeoJSON:', error));
         
